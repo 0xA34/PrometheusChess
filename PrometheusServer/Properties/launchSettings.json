@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ChessServer": {
+      "commandName": "Project",
+      "commandLineArgs": "--dev"
+    }
+  }
+}
