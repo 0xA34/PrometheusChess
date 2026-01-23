@@ -1,8 +1,7 @@
 {
   "profiles": {
     "PrometheusServer": {
-      "commandName": "Project",
-      "commandLineArgs": "--dev"
+      "commandName": "Project"
     }
   }
 }
