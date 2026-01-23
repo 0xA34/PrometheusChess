@@ -9,7 +9,6 @@
         <Version>1.0.0</Version>
         <Authors>0xA34</Authors>
         <Description>Shared chess logic, models, and network protocols for PrometheusServer</Description>
-        <!-- Enable XML documentation -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
