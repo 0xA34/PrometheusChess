@@ -372,7 +372,11 @@ The schema defines PostgreSQL enums for type safety:
 - `active_games`: Currently running games
 - `player_game_history`: Completed games with results
 
+### Custom Fonts and texture for the client
 
+By default, I will not ship them due to licencing.  
+If you want, download any fonts of your choice, put it in `Assets/Fonts` and find random chess textures online put it in `Assets/Textures`.  
+The chess texture has to be something like white-{pieceName}.png and black-{pieceName}.png.    
 
 ## License
 
