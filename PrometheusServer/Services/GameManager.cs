@@ -299,8 +299,8 @@ public sealed class GameManager : IDisposable
 
         if (!validationResult.IsValid)
         {
-            _logger.LogDebug("Invalid move in game {GameId}: {Move} - {Message}",
-                gameId, $"{fromNotation}{toNotation}", validationResult.Message);
+            var playerName = playerColor.Value == PieceColor.White ? game.WhitePlayer.Username : game.BlackPlayer.Username;
+            ServerLogger.LogInvalidMove(_logger, gameId, playerName, $"{fromNotation}{toNotation}", validationResult.Message ?? "Invalid move");
             return CreateMoveResponse(gameId, false, validationResult.ValidationResult, validationResult.Message ?? "Invalid move");
         }
 
@@ -551,8 +551,7 @@ public sealed class GameManager : IDisposable
         game.HandleTimeout(timedOutColor);
 
         var timedOutPlayer = timedOutColor == PieceColor.White ? game.WhitePlayer.Username : game.BlackPlayer.Username;
-        _logger.LogWarning("Game {GameId}: {Player} ({Color}) ran out of time ⏱",
-            gameId, timedOutPlayer, timedOutColor);
+        ServerLogger.LogTimeForfeit(_logger, gameId, timedOutPlayer);
 
         // Update ratings
         var (whiteRatingChange, blackRatingChange) = await UpdateRatingsAfterGameAsync(game);

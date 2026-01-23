@@ -56,7 +56,86 @@ public static class ServerLogger
     /// </summary>
     public static void LogMove(ILogger logger, string gameId, string player, string move, string fen)
     {
-        logger.LogDebug("Move {Move} by {Player} in game {GameId}", move, player, gameId);
+        logger.LogInformation("Move {Move} by {Player} in game {GameId} | FEN: {Fen}", move, player, gameId, fen);
+    }
+
+    /// <summary>
+    /// Logs an invalid move attempt.
+    /// </summary>
+    public static void LogInvalidMove(ILogger logger, string gameId, string player, string move, string reason)
+    {
+        logger.LogWarning("Invalid move {Move} by {Player} in game {GameId}: {Reason}", move, player, gameId, reason);
+    }
+
+    /// <summary>
+    /// Logs a draw offer.
+    /// </summary>
+    public static void LogDrawOffered(ILogger logger, string gameId, string player)
+    {
+        logger.LogInformation("Draw offered by {Player} in game {GameId}", player, gameId);
+    }
+
+    /// <summary>
+    /// Logs a draw acceptance.
+    /// </summary>
+    public static void LogDrawAccepted(ILogger logger, string gameId, string player)
+    {
+        logger.LogInformation("Draw accepted by {Player} in game {GameId}", player, gameId);
+    }
+
+    /// <summary>
+    /// Logs a draw decline.
+    /// </summary>
+    public static void LogDrawDeclined(ILogger logger, string gameId, string player)
+    {
+        logger.LogInformation("Draw declined by {Player} in game {GameId}", player, gameId);
+    }
+
+    /// <summary>
+    /// Logs a resignation.
+    /// </summary>
+    public static void LogResignation(ILogger logger, string gameId, string player)
+    {
+        logger.LogInformation("Player {Player} resigned in game {GameId}", player, gameId);
+    }
+
+    /// <summary>
+    /// Logs a time forfeit.
+    /// </summary>
+    public static void LogTimeForfeit(ILogger logger, string gameId, string player)
+    {
+        logger.LogInformation("Player {Player} flagged (out of time) in game {GameId}", player, gameId);
+    }
+
+    /// <summary>
+    /// Logs a player logout.
+    /// </summary>
+    public static void LogPlayerLogout(ILogger logger, string username)
+    {
+        logger.LogInformation("Player logged out: {Username}", username);
+    }
+
+    /// <summary>
+    /// Logs matchmaking cancellation.
+    /// </summary>
+    public static void LogQueueLeave(ILogger logger, string username)
+    {
+        logger.LogInformation("Player {Username} left matchmaking queue", username);
+    }
+
+    /// <summary>
+    /// Logs a session validation failure.
+    /// </summary>
+    public static void LogSessionValidationFailed(ILogger logger, string reason, string? connectionId = null)
+    {
+        if (connectionId != null)
+        {
+            logger.LogWarning("Session validation failed for {ConnectionId}: {Reason}", connectionId, reason);
+        }
+        else
+        {
+            logger.LogWarning("Session validation failed: {Reason}", reason);
+        }
     }
 
     /// <summary>

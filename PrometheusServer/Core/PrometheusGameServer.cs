@@ -547,7 +547,7 @@ public sealed class PrometheusGameServer : IDisposable
 
         connection.ClearPlayerId();
 
-        _logger.LogInformation("Player {Username} logged out", username);
+        ServerLogger.LogPlayerLogout(_logger, username);
     }
 
     // Just simple matchmaking.
@@ -622,7 +622,7 @@ public sealed class PrometheusGameServer : IDisposable
             Status = ChessCore.Models.QueueStatus.Cancelled
         });
 
-        _logger.LogDebug("Player {Username} left matchmaking queue", connection.Username);
+        ServerLogger.LogQueueLeave(_logger, connection.Username ?? "Unknown");
     }
 
     private async Task HandleMoveRequestAsync(ClientConnection connection, MoveRequestMessage message)
@@ -687,6 +687,8 @@ public sealed class PrometheusGameServer : IDisposable
         if (!tokenResult.IsValid || connection.PlayerId == null)
             return;
 
+        ServerLogger.LogResignation(_logger, message.GameId, connection.Username ?? "Unknown");
+
         var gameEndResult = _gameManager.HandleResignation(message.GameId, connection.PlayerId);
 
         if (gameEndResult != null)
@@ -700,6 +702,8 @@ public sealed class PrometheusGameServer : IDisposable
         var tokenResult = _sessionManager.ValidateTokenQuick(message.SessionToken);
         if (!tokenResult.IsValid || connection.PlayerId == null)
             return;
+
+        ServerLogger.LogDrawOffered(_logger, message.GameId, connection.Username ?? "Unknown");
 
         var game = _gameManager.GetGame(message.GameId);
         if (game == null)
@@ -726,6 +730,8 @@ public sealed class PrometheusGameServer : IDisposable
         if (!tokenResult.IsValid || connection.PlayerId == null)
             return;
 
+        ServerLogger.LogDrawAccepted(_logger, message.GameId, connection.Username ?? "Unknown");
+
         var gameEndResult = _gameManager.HandleDrawAccepted(message.GameId);
 
         if (gameEndResult != null)
@@ -740,7 +746,8 @@ public sealed class PrometheusGameServer : IDisposable
         if (!tokenResult.IsValid || connection.PlayerId == null)
             return;
 
-        // Just notify the opponent that draw was declined
+        ServerLogger.LogDrawDeclined(_logger, message.GameId, connection.Username ?? "Unknown");
+
         var game = _gameManager.GetGame(message.GameId);
         if (game == null)
             return;
