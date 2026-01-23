@@ -22,13 +22,13 @@ public class Program
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
         var options = ParseCommandLineArgs(args);
-        
+
         if (options.ShowHelp)
         {
             DisplayHelp();
             return;
         }
-        
+
         if (options.DevelopmentMode)
         {
             DisplayDevelopmentModeBanner();
@@ -127,13 +127,16 @@ public class Program
 
         services.AddSingleton(configuration);
 
-        var logLevel = options.DevelopmentMode 
-            ? LogLevel.Debug 
+        var logLevel = options.DevelopmentMode
+            ? LogLevel.Debug
             : configuration.GetValue("Logging:LogLevel:Default", LogLevel.Information);
 
         services.AddLogging(builder =>
         {
-            builder.AddConfiguration(configuration.GetSection("Logging"));
+            if (!options.DevelopmentMode)
+            {
+                builder.AddConfiguration(configuration.GetSection("Logging"));
+            }
 
             builder.AddColoredConsole(opts =>
             {
@@ -151,8 +154,8 @@ public class Program
             MaxConnections = configuration.GetValue("Server:MaxConnections", 1000),
             HeartbeatIntervalSeconds = configuration.GetValue("Server:HeartbeatIntervalSeconds", 30),
             ConnectionTimeoutSeconds = configuration.GetValue("Server:ConnectionTimeoutSeconds", 120),
-            MaxRequestsPerMinute = options.DevelopmentMode 
-                ? 1000 
+            MaxRequestsPerMinute = options.DevelopmentMode
+                ? 1000
                 : configuration.GetValue("Security:MaxRequestsPerMinute", 100),
             DisconnectionGracePeriodSeconds = configuration.GetValue("Game:DisconnectionGracePeriodSeconds", 60)
         };
@@ -286,7 +289,7 @@ public class Program
         foreach (var arg in args)
         {
             var lowerArg = arg.ToLowerInvariant();
-            
+
             switch (lowerArg)
             {
                 case "--development":
@@ -294,7 +297,7 @@ public class Program
                 case "-d":
                     options.DevelopmentMode = true;
                     break;
-                    
+
                 case "--help":
                 case "-h":
                 case "-?":
@@ -314,13 +317,13 @@ public class Program
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("  A chess server, heavily rely on the server. Just a small project, nothing too special.");
         Console.WriteLine();
-        
+
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("  USAGE:");
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("      Prometheus [OPTIONS]");
         Console.WriteLine();
-        
+
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("  OPTIONS:");
         Console.ForegroundColor = ConsoleColor.Gray;
@@ -332,14 +335,14 @@ public class Program
         Console.WriteLine();
         Console.WriteLine("      --help, -h, -?              Show this help message");
         Console.WriteLine();
-        
+
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("  EXAMPLES:");
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("      Prometheus                 Run with database (production)");
         Console.WriteLine("      Prometheus --dev           Run in development mode");
         Console.WriteLine();
-        
+
         Console.ResetColor();
     }
 

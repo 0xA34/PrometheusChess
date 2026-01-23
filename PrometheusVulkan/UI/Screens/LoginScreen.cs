@@ -14,7 +14,7 @@ public class LoginScreen : IScreen
     private string _username = "";
     private string _password = "";
     private string _email = "";
-    
+
     private bool _showRegisterForm;
     private float _statusMessageTimer;
     private string _statusMessage = "";
@@ -24,7 +24,7 @@ public class LoginScreen : IScreen
     {
         _gameManager = gameManager;
         _uiManager = uiManager;
-        
+
         // Auto-fill username if available
         if (!string.IsNullOrEmpty(SettingsManager.Instance.LastUsername))
         {
@@ -34,7 +34,7 @@ public class LoginScreen : IScreen
         _gameManager.Client.RegisterSuccess += (_) => OnRegisterSuccess();
     }
 
-    public void OnShow() 
+    public void OnShow()
     {
         _password = "";
         _statusMessage = "";
@@ -62,7 +62,7 @@ public class LoginScreen : IScreen
         // Center the login window
         ImGui.SetNextWindowPos(new Vector2(windowSize.X / 2, windowSize.Y / 2), ImGuiCond.Always, new Vector2(0.5f, 0.5f));
         ImGui.SetNextWindowSize(new Vector2(380, 0));
-        
+
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(28, 24));
         ImGui.PushStyleColor(ImGuiCol.WindowBg, ThemeManager.PanelBg);
@@ -70,11 +70,11 @@ public class LoginScreen : IScreen
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.0f);
 
         var flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar;
-        
+
         if (ImGui.Begin("##LoginWindow", flags))
         {
             RenderHeader();
-            
+
             bool isConnecting = _gameManager.CurrentState == GameState.Connecting;
 
             if (isConnecting)
@@ -93,13 +93,13 @@ public class LoginScreen : IScreen
 
             ImGui.Spacing();
             ImGui.TextColored(new Vector4(0.35f, 0.38f, 0.44f, 1.0f), "v0.0.4-alpha-devr");
-            
+
             ImGui.End();
         }
 
         ImGui.PopStyleColor(2);
         ImGui.PopStyleVar(3);
-        
+
         // Settings Button (Bottom Right)
         float padding = 20;
         ImGui.SetNextWindowPos(new Vector2(windowSize.X - padding, windowSize.Y - padding), ImGuiCond.Always, new Vector2(1.0f, 1.0f));
@@ -110,7 +110,7 @@ public class LoginScreen : IScreen
             // Since we need to click it, we need a normal window
         }
         ImGui.End();
-        
+
         // Easier: Just a freestanding window for the button
         ImGui.SetNextWindowPos(new Vector2(windowSize.X - 20, windowSize.Y - 20), ImGuiCond.Always, new Vector2(1.0f, 1.0f));
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0,0,0,0));
@@ -135,7 +135,7 @@ public class LoginScreen : IScreen
         ImGui.PushFont(ImGui.GetIO().Fonts.Fonts[0]);
         ImGui.TextColored(ThemeManager.PrimaryOrange, "PROMETHEUS");
         ImGui.PopFont();
-            
+
         ImGui.SameLine();
         float width = ImGui.GetContentRegionAvail().X;
         float textW = ImGui.CalcTextSize("CONFIDENTIAL").X;
@@ -181,7 +181,7 @@ public class LoginScreen : IScreen
                 SettingsManager.Instance.LastUsername = _username;
                 SettingsManager.Save();
             }
-            
+
             _ = LoginAsync();
         }
         ThemeManager.PopOverwatchButtonStyle();
@@ -189,7 +189,7 @@ public class LoginScreen : IScreen
         ImGui.Spacing();
 
         // Switch to register
-        RenderLinkButton("Need an account? Register here", () => 
+        RenderLinkButton("Need an account? Register here", () =>
         {
             _showRegisterForm = true;
             _statusMessage = "";
@@ -230,7 +230,7 @@ public class LoginScreen : IScreen
 
         ImGui.Spacing();
 
-        RenderLinkButton("Already have an account? Login", () => 
+        RenderLinkButton("Already have an account? Login", () =>
         {
             _showRegisterForm = false;
             _statusMessage = "";
@@ -303,7 +303,7 @@ public class LoginScreen : IScreen
             SetStatus("Connecting to server...", false);
             // Defaulting to stored host/port or hardcoded if logic dictates
             await _gameManager.ConnectToServerAsync();
-            
+
             // Allow some time for connection
             await Task.Delay(500);
             if (_gameManager.CurrentState != GameState.Connected)
@@ -320,7 +320,6 @@ public class LoginScreen : IScreen
 
     private async Task RegisterAsync()
     {
-        // Validation logic similar to before...
         if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
         {
             SetStatus("Please fill all fields", true);
@@ -331,6 +330,12 @@ public class LoginScreen : IScreen
         {
             SetStatus("Connecting to server...", false);
             await _gameManager.ConnectToServerAsync();
+
+            await Task.Delay(500);
+            if (_gameManager.CurrentState != GameState.Connected)
+            {
+                return;
+            }
         }
 
         SetStatus("Creating account...", false);

@@ -41,6 +41,7 @@ public sealed class GameClient : IDisposable
     public int Rating { get; private set; }
     public string? CurrentGameId { get; private set; }
     public bool IsServerInMemoryMode { get; private set; }
+    public int MoveSequence { get; private set; }
 
     // Retry configuration
     public int MaxRetryAttempts { get; set; } = 5;
@@ -336,7 +337,8 @@ public sealed class GameClient : IDisposable
             From = from,
             To = to,
             Promotion = promotion?.ToString(),
-            ClientTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            ClientTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            ExpectedSequence = MoveSequence
         };
 
         await SendMessageAsync(message);
@@ -644,6 +646,7 @@ public sealed class GameClient : IDisposable
     private void HandleGameStart(GameStartMessage response)
     {
         CurrentGameId = response.GameId;
+        MoveSequence = 0;
         Console.WriteLine($"[GameClient] Game started! ID: {response.GameId}");
         GameStarted?.Invoke(
             response.GameId,
@@ -658,6 +661,7 @@ public sealed class GameClient : IDisposable
 
     private void HandleGameState(GameStateMessage response)
     {
+        MoveSequence = response.MoveSequence;
         GameStateUpdated?.Invoke(
             response.GameId,
             response.Fen,
@@ -671,6 +675,10 @@ public sealed class GameClient : IDisposable
 
     private void HandleMoveResponse(MoveResponseMessage response)
     {
+        if (response.Success)
+        {
+            MoveSequence = response.MoveSequence;
+        }
         MoveResponseReceived?.Invoke(
             response.Success,
             response.Message ?? "",
@@ -683,6 +691,7 @@ public sealed class GameClient : IDisposable
 
     private void HandleMoveNotification(MoveNotificationMessage response)
     {
+        MoveSequence = response.MoveSequence;
         OpponentMoved?.Invoke(
             response.Move,
             response.NewFen,
@@ -707,6 +716,7 @@ public sealed class GameClient : IDisposable
             response.NewRating
         );
         CurrentGameId = null;
+        MoveSequence = 0;
     }
 
     private void HandleDrawOffered(DrawOfferedMessage response)

@@ -54,7 +54,7 @@ public sealed class UIManager : IDisposable
 
         // Set initial screen
         UpdateScreenForState(_gameManager.CurrentState);
-        
+
         // Initial Theme Apply
         ThemeManager.ApplyTheme();
     }
@@ -86,8 +86,8 @@ public sealed class UIManager : IDisposable
             RenderDebugOverlay();
         }
 
-        // Memory Mode Warning (Global)
-        if (_gameManager.IsServerInMemoryMode && _gameManager.CurrentState >= GameState.Connected)
+        // Memory Mode Warning (Global) - only show after successful login
+        if (_gameManager.IsServerInMemoryMode && _gameManager.CurrentState >= GameState.InLobby)
         {
             RenderMemoryModeWarning();
         }
@@ -141,7 +141,7 @@ public sealed class UIManager : IDisposable
     {
         SettingsManager.Instance.ShowDebugStats = !SettingsManager.Instance.ShowDebugStats;
     }
-    
+
     public void TogglePauseMenu()
     {
         // Simple toggle settings for now as pause menu
@@ -152,7 +152,7 @@ public sealed class UIManager : IDisposable
     {
         var io = ImGui.GetIO();
         float headerOffset = 100f; // Below the header
-        
+
         ImGui.SetNextWindowPos(new Vector2(10, headerOffset));
         ImGui.SetNextWindowBgAlpha(0.85f);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.08f, 0.1f, 0.12f, 0.95f));
@@ -160,35 +160,35 @@ public sealed class UIManager : IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 6.0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 10));
-        
+
         if (ImGui.Begin("##DebugStats", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav))
         {
             ImGui.TextColored(ThemeManager.PrimaryOrange, "DEBUG INFO");
             ImGui.Separator();
             ImGui.Spacing();
-            
+
             // Performance
             ImGui.TextColored(ThemeManager.TextHighlight, "PERFORMANCE");
             ImGui.Text($"  FPS: {io.Framerate:F1}");
             ImGui.Text($"  Frame Time: {1000.0f / io.Framerate:F2} ms");
             ImGui.Text($"  Frame: {_renderer.CurrentFrame}");
-            
+
             ImGui.Spacing();
-            
+
             // Vulkan Info
             ImGui.TextColored(ThemeManager.TextHighlight, "VULKAN");
             ImGui.Text($"  Device: {_renderer.DeviceName ?? "Unknown"}");
             ImGui.Text($"  Swapchain: {_renderer.SwapchainImageCount} images");
             ImGui.Text($"  Resolution: {(int)io.DisplaySize.X}x{(int)io.DisplaySize.Y}");
-            
+
             ImGui.Spacing();
-            
+
             // Game State
             ImGui.TextColored(ThemeManager.TextHighlight, "GAME STATE");
             ImGui.Text($"  State: {_gameManager.CurrentState}");
             ImGui.Text($"  User: {_gameManager.Username ?? "Not logged in"}");
             ImGui.Text($"  Rating: {_gameManager.Rating}");
-            
+
             if (_gameManager.CurrentState >= GameState.InGame)
             {
                 ImGui.Text($"  GameID: {_gameManager.CurrentGameId ?? "N/A"}");
@@ -196,14 +196,14 @@ public sealed class UIManager : IDisposable
                 ImGui.Text($"  Opponent: {_gameManager.OpponentName ?? "N/A"}");
                 ImGui.Text($"  Moves: {_gameManager.MoveHistory.Count}");
             }
-            
+
             ImGui.Spacing();
-            
+
             // Network
             ImGui.TextColored(ThemeManager.TextHighlight, "NETWORK");
             ImGui.Text($"  Connected: {_gameManager.CurrentState >= GameState.Connected}");
             ImGui.Text($"  Memory Mode: {_gameManager.IsServerInMemoryMode}");
-            
+
             ImGui.End();
         }
         ImGui.PopStyleVar(3);
@@ -229,14 +229,14 @@ public sealed class UIManager : IDisposable
         if (ImGui.Begin("##MemoryWarning", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.AlwaysAutoResize))
         {
             float windowWidth = ImGui.GetWindowSize().X;
-            
+
             string title = "⚠ MEMORY MODE";
             ImGui.PushFont(io.Fonts.Fonts[0]);
             float titleWidth = ImGui.CalcTextSize(title).X;
             ImGui.SetCursorPosX((windowWidth - titleWidth) / 2);
             ImGui.TextColored(ThemeManager.WarningYellow, title);
             ImGui.PopFont();
-            
+
             ImGui.Spacing();
             ImGui.PushTextWrapPos(windowWidth - 20);
             ImGui.TextColored(ThemeManager.TextMuted, "Server is running in memory mode. Progress will be lost on restart.");
@@ -253,9 +253,9 @@ public sealed class UIManager : IDisposable
         _isDisposed = true;
 
         _gameManager.StateChanged -= OnGameStateChanged;
-        
+
         _resourceManager.Dispose();
-        
+
         Console.WriteLine("[UIManager] Disposed");
     }
 }
