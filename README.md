@@ -20,7 +20,6 @@ A server-authoritative online chess game built with .NET 10. The project consist
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Database Setup](#database-setup)
-- [Development Mode](#development-mode)
 - [Documentation](#documentation)
 - [License](#license)
 
@@ -32,7 +31,7 @@ Key features:
 - Server-authoritative game logic (anti-cheat by design)
 - ELO-based matchmaking with expanding rating range
 - JWT authentication with session management
-- PostgreSQL persistence (with in-memory fallback for development)
+- PostgreSQL persistence (with in-memory mode as default)
 - Real-time game clock synchronization
 - Vulkan-rendered client with ImGui interface
 
@@ -64,7 +63,7 @@ Key features:
                               │
 ┌─────────────────────────────▼───────────────────────────────────┐
 │                         PostgreSQL                              │
-│                  (or In-Memory for dev)                         │
+│                  (or In-Memory by default)                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -135,7 +134,7 @@ Dependencies:
 | Category | Messages |
 |----------|----------|
 | Connection | `Connect`, `ConnectResponse`, `Heartbeat`, `HeartbeatAck` |
-| Authentication | `Login`, `LoginResponse`, `Register`, `RegisterResponse` |
+| Authentication | `Login`, `LoginResponse`, `Logout`, `Register`, `RegisterResponse` |
 | Matchmaking | `FindMatch`, `CancelFindMatch`, `MatchFound`, `QueueStatus` |
 | Game Flow | `GameStart`, `GameState`, `GameEnd` |
 | Moves | `MoveRequest`, `MoveResponse`, `MoveNotification` |
@@ -224,7 +223,7 @@ Server notifies opponent:
 ### Prerequisites
 
 - .NET 10 SDK
-- PostgreSQL 14+ (optional, can use in-memory mode)
+- PostgreSQL 14+ (optional, only needed for database mode)
 - Vulkan-compatible GPU (for client)
 
 ### Building
@@ -245,16 +244,45 @@ dotnet build PrometheusVulkan/PrometheusVulkan.csproj
 ### Running the Server
 
 ```bash
-# Development mode (in-memory, no database required)
-# Copy a new appsettings.json first
-cp appsettings.example.json appsettings.json
-# Then run the server
-dotnet run --project PrometheusServer -- --dev
-
-# Production mode (requires PostgreSQL)
-# Same as copy above, however you need to adjust appsettings.json to suit the needs.
+# In-memory mode (default, no database required)
 dotnet run --project PrometheusServer
+
+# Database mode (requires PostgreSQL)
+# First, copy and configure appsettings.json
+cp PrometheusServer/appsettings.example.json PrometheusServer/appsettings.json
+# Edit appsettings.json with your database credentials, then:
+dotnet run --project PrometheusServer -- --database
 ```
+
+### Server Command Line Options
+
+| Option | Description |
+|--------|-------------|
+| (none) | Run in in-memory mode (default) |
+| `--database`, `--db`, `-p` | Run in database mode (PostgreSQL) |
+| `--help`, `-h`, `-?` | Show help message |
+
+### In-Memory Mode (Default)
+
+When you run the server without any flags, it starts in in-memory mode:
+
+- No database required
+- Debug-level logging enabled
+- Auto-generated JWT secret (unique per session)
+- Relaxed rate limits (1000 req/min)
+- Data is lost when server restarts
+
+This is ideal for development, testing, and quick demos.
+
+### Database Mode
+
+When you run the server with `--database` flag:
+
+- Requires PostgreSQL connection
+- Production logging levels (configurable via appsettings.json)
+- JWT secret from configuration (must be set)
+- Standard rate limits (100 req/min)
+- Persistent storage for players, games, and sessions
 
 ### Running the Client
 
@@ -298,8 +326,7 @@ Edit `appsettings.json` with your settings:
     "Port": 5432,
     "Database": "chess_game",
     "Username": "chess_server",
-    "Password": "YOUR_PASSWORD",
-    "UseInMemory": false
+    "Password": "YOUR_PASSWORD"
   },
   "Rating": {
     "DefaultRating": 1200,
@@ -315,24 +342,9 @@ Edit `appsettings.json` with your settings:
 - `CHESS_DB_PASSWORD`: Database password (preferred over config file)
 - `ASPNETCORE_ENVIRONMENT`: Set to `Development` for development settings
 
-## Development Mode
-
-Run the server with `--dev` or `--development` flag:
-
-```bash
-dotnet run --project PrometheusServer -- --dev
-```
-
-Development mode enables:
-- In-memory storage (no PostgreSQL required)
-- Debug-level logging
-- Auto-generated JWT secret (unique per session)
-- Relaxed rate limits (1000 req/min)
-
-
 ## Database Setup
 
-The server uses PostgreSQL for persistent storage. A schema script is provided at `database/schema.sql`.
+The server uses PostgreSQL for persistent storage when running in database mode. A schema script is provided at `database/schema.sql`.
 
 ### Quick Setup
 
@@ -376,11 +388,11 @@ The schema defines PostgreSQL enums for type safety:
 - `active_games`: Currently running games
 - `player_game_history`: Completed games with results
 
-### Custom Fonts and texture for the client
+### Custom Fonts and Textures for the Client
 
-By default, I will not ship them due to licencing.  
+By default, I will not ship them due to licensing.  
 If you want, download any fonts of your choice, put it in `Assets/Fonts` and find random chess textures online put it in `Assets/Textures`.  
-The chess texture has to be something like white-{pieceName}.png and black-{pieceName}.png.    
+The chess texture has to be something like `white-{pieceName}.png` and `black-{pieceName}.png`.    
 
 ## License
 
