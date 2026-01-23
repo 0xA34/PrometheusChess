@@ -2,6 +2,7 @@ using System.Numerics;
 using PrometheusVulkan.State;
 using ImGuiNET;
 using PrometheusVulkan.Core;
+using PrometheusVulkan.Graphics;
 using PrometheusVulkan.UI.Screens;
 
 namespace PrometheusVulkan.UI.Screens;
@@ -9,15 +10,17 @@ namespace PrometheusVulkan.UI.Screens;
 public class SettingsScreen : IScreen
 {
     private readonly UIManager _uiManager;
+    private readonly VulkanRenderer _renderer;
     private bool _vsync;
     private bool _fullscreen;
     private bool _stats;
     private bool _hints;
     private float _volume;
 
-    public SettingsScreen(UIManager uiManager)
+    public SettingsScreen(UIManager uiManager, VulkanRenderer renderer)
     {
         _uiManager = uiManager;
+        _renderer = renderer;
     }
 
     public void OnShow()
@@ -49,7 +52,7 @@ public class SettingsScreen : IScreen
         // Modal-like window
         ImGui.SetNextWindowPos(new Vector2(windowSize.X / 2, windowSize.Y / 2), ImGuiCond.Always, new Vector2(0.5f, 0.5f));
         ImGui.SetNextWindowSize(new Vector2(500, 450));
-        
+
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, ThemeManager.PanelBg);
         ImGui.PushStyleColor(ImGuiCol.Border, ThemeManager.PrimaryOrange);
@@ -60,7 +63,7 @@ public class SettingsScreen : IScreen
             ImGui.PushFont(io.Fonts.Fonts[0]);
             ImGui.TextColored(ThemeManager.PrimaryOrange, "SETTINGS");
             ImGui.PopFont();
-            
+
             ImGui.Separator();
             ImGui.Spacing();
             ImGui.Spacing();
@@ -68,12 +71,10 @@ public class SettingsScreen : IScreen
             // Graphics
             ImGui.TextColored(ThemeManager.TextHighlight, "GRAPHICS");
             ImGui.Separator();
-            
-            if (ImGui.Checkbox("VSync (Requires Restart)", ref _vsync))
+
+            if (ImGui.Checkbox("VSync", ref _vsync))
             {
-                // Note: immediate application requires re-creating swapchain or window, which is complex. 
-                // Simple version: save and require restart, or just update variable and hope renderer checks it?
-                // Renderer checks `_window.VSync` usually only on creation or re-creation.
+                _renderer.VSyncEnabled = _vsync;
             }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Limits FPS to refresh rate to prevent tearing and high GPU usage.");
 
@@ -82,7 +83,7 @@ public class SettingsScreen : IScreen
                 // Can apply immediately via window
                 // _uiManager.SetFullscreen(_fullscreen); // Need to expose this
             }
-            
+
             ImGui.Checkbox("Show Debug Stats (FPS)", ref _stats);
 
             ImGui.Spacing();
@@ -92,7 +93,7 @@ public class SettingsScreen : IScreen
             ImGui.TextColored(ThemeManager.TextHighlight, "GAMEPLAY");
             ImGui.Separator();
             ImGui.Checkbox("Show Legal Move Hints", ref _hints);
-            
+
             ImGui.Spacing();
             ImGui.Text("Master Volume");
             ImGui.SliderFloat("##Vol", ref _volume, 0.0f, 1.0f, "%.0f%%");
@@ -105,7 +106,7 @@ public class SettingsScreen : IScreen
             // Footer Buttons
             float buttonWidth = 120;
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - buttonWidth * 2 - 30);
-            
+
             ThemeManager.PushOverwatchButtonStyle(false);
             if (ImGui.Button("CANCEL", new Vector2(buttonWidth, 40)))
             {
@@ -117,9 +118,9 @@ public class SettingsScreen : IScreen
                 // Let's make "DONE" button.
             }
             ThemeManager.PopOverwatchButtonStyle();
-            
+
             ImGui.SameLine();
-            
+
             ThemeManager.PushOverwatchButtonStyle(true);
             if (ImGui.Button("SAVE & CLOSE", new Vector2(buttonWidth, 40)))
             {
@@ -127,14 +128,14 @@ public class SettingsScreen : IScreen
                 _uiManager.ToggleSettings();
             }
             ThemeManager.PopOverwatchButtonStyle();
-            
+
             ImGui.End();
         }
-        
+
         ImGui.PopStyleColor(2);
         ImGui.PopStyleVar(2);
     }
-    
+
     private void ApplySettings()
     {
         bool settingsChanged = SettingsManager.Instance.VSync != _vsync ||
@@ -146,11 +147,9 @@ public class SettingsScreen : IScreen
         SettingsManager.Instance.ShowDebugStats = _stats;
         SettingsManager.Instance.ShowLegalMoveHints = _hints;
         SettingsManager.Instance.MasterVolume = _volume;
-        
+
         SettingsManager.Save();
-        
-        // Apply immediate effects
-        // Fullscreen handles via UIManager or Window?
-        // _uiManager.ApplyDisplaySettings(_fullscreen, _vsync); (To be implemented in UIManager)
+
+        _renderer.VSyncEnabled = _vsync;
     }
 }

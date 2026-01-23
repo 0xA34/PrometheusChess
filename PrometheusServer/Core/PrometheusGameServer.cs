@@ -277,6 +277,10 @@ public sealed class PrometheusGameServer : IDisposable
                     await HandleRegisterAsync(connection, (RegisterMessage)message);
                     break;
 
+                case MessageType.Logout:
+                    await HandleLogoutAsync(connection, (LogoutMessage)message);
+                    break;
+
                 case MessageType.FindMatch:
                     await HandleFindMatchAsync(connection, (FindMatchMessage)message);
                     break;
@@ -522,6 +526,28 @@ public sealed class PrometheusGameServer : IDisposable
         });
 
         ServerLogger.LogPlayerRegistered(_logger, message.Username);
+    }
+
+    private async Task HandleLogoutAsync(ClientConnection connection, LogoutMessage message)
+    {
+        var tokenResult = _sessionManager.ValidateTokenQuick(message.SessionToken);
+        if (!tokenResult.IsValid)
+        {
+            return;
+        }
+
+        var username = connection.Username ?? "Unknown";
+
+        if (connection.PlayerId != null)
+        {
+            _matchmakingService.DequeuePlayer(connection.PlayerId);
+        }
+
+        await _sessionManager.RevokeSessionAsync(message.SessionToken);
+
+        connection.ClearPlayerId();
+
+        _logger.LogInformation("Player {Username} logged out", username);
     }
 
     // Just simple matchmaking.

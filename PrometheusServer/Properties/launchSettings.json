@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ChessServer": {
+    "PrometheusServer": {
       "commandName": "Project",
       "commandLineArgs": "--dev"
     }

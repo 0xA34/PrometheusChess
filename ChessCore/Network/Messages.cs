@@ -108,6 +108,7 @@ public abstract class NetworkMessage
             MessageType.HeartbeatAck => JsonSerializer.Deserialize<HeartbeatAckMessage>(json, MessageSerializerContext.Default),
             MessageType.Login => JsonSerializer.Deserialize<LoginMessage>(json, MessageSerializerContext.Default),
             MessageType.LoginResponse => JsonSerializer.Deserialize<LoginResponseMessage>(json, MessageSerializerContext.Default),
+            MessageType.Logout => JsonSerializer.Deserialize<LogoutMessage>(json, MessageSerializerContext.Default),
             MessageType.Register => JsonSerializer.Deserialize<RegisterMessage>(json, MessageSerializerContext.Default),
             MessageType.RegisterResponse => JsonSerializer.Deserialize<RegisterResponseMessage>(json, MessageSerializerContext.Default),
             MessageType.FindMatch => JsonSerializer.Deserialize<FindMatchMessage>(json, MessageSerializerContext.Default),
@@ -290,6 +291,17 @@ public sealed class RegisterResponseMessage : NetworkMessage
 
     [JsonPropertyName("errorCode")]
     public string? ErrorCode { get; set; }
+}
+
+/// <summary>
+/// Client request to logout
+/// </summary>
+public sealed class LogoutMessage : NetworkMessage
+{
+    public override MessageType Type => MessageType.Logout;
+
+    [JsonPropertyName("sessionToken")]
+    public required string SessionToken { get; set; }
 }
 
 #endregion

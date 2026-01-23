@@ -249,8 +249,9 @@ public sealed class GameManager : IDisposable
         await Client.LoginWithTokenAsync(token);
     }
 
-    public void Logout()
+    public async Task LogoutAsync()
     {
+        await Client.LogoutAsync();
         SessionToken = null;
         PlayerId = null;
         Username = null;

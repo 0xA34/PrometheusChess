@@ -23,7 +23,7 @@ public sealed unsafe class VulkanRenderer : IDisposable
     // By default this is false.
     // You only need validation layer if you want to debug the client for specific vulkan stuff.
     // However, only enable if you really need them, depending on the GPU, validation layers could give different results.
-    private readonly bool _enableValidation; 
+    private readonly bool _enableValidation;
 
     // Vulkan API
     private Vk? _vk;
@@ -72,6 +72,9 @@ public sealed unsafe class VulkanRenderer : IDisposable
     private bool _isInitialized;
     private bool _isDisposed;
 
+    // VSync state (separate from window, for runtime changes)
+    private bool _vsyncEnabled;
+
     // Properties
     public Vk Vk => _vk ?? throw new InvalidOperationException("Vulkan not initialised");
     public Device Device => _device;
@@ -87,11 +90,24 @@ public sealed unsafe class VulkanRenderer : IDisposable
     public uint CurrentImageIndex => _currentImageIndex;
     public int SwapchainImageCount => _swapchainImages.Length;
     public string? DeviceName { get; private set; }
+    public bool VSyncEnabled
+    {
+        get => _vsyncEnabled;
+        set
+        {
+            if (_vsyncEnabled != value)
+            {
+                _vsyncEnabled = value;
+                _framebufferResized = true;
+            }
+        }
+    }
 
     public VulkanRenderer(IWindow window, bool enableValidation = false)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _enableValidation = enableValidation;
+        _vsyncEnabled = window.VSync;
     }
 
     public void Initialize()
@@ -580,7 +596,7 @@ public sealed unsafe class VulkanRenderer : IDisposable
     private PresentModeKHR ChooseSwapPresentMode(PresentModeKHR[] availablePresentModes)
     {
         // If VSync is enabled, we must use FIFO (guaranteed to be available)
-        if (_window.VSync)
+        if (_vsyncEnabled)
         {
             return PresentModeKHR.FifoKhr;
         }

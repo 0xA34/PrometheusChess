@@ -47,7 +47,7 @@ public sealed class UIManager : IDisposable
         _loginScreen = new LoginScreen(_gameManager, this);
         _lobbyScreen = new LobbyScreen(_gameManager, this);
         _gameScreen = new GameScreen(_gameManager, this, _resourceManager);
-        _settingsScreen = new SettingsScreen(this);
+        _settingsScreen = new SettingsScreen(this, renderer);
 
         // Connect events
         _gameManager.StateChanged += OnGameStateChanged;

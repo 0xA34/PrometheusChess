@@ -101,6 +101,7 @@ public sealed class Application : IDisposable
             // Initialise Vulkan renderer
             _renderer = new VulkanRenderer(_window, _options.EnableValidationLayers);
             _renderer.Initialize();
+            _renderer.VSyncEnabled = SettingsManager.Instance.VSync;
             Console.WriteLine("[Application] Vulkan renderer initialised");
 
             // Initialize ImGui

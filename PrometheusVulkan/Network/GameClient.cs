@@ -273,6 +273,26 @@ public sealed class GameClient : IDisposable
         await SendMessageAsync(message);
     }
 
+    public async Task LogoutAsync()
+    {
+        if (string.IsNullOrEmpty(SessionToken))
+            return;
+
+        var message = new LogoutMessage
+        {
+            SessionToken = SessionToken
+        };
+
+        await SendMessageAsync(message);
+
+        SessionToken = null;
+        PlayerId = null;
+        Username = null;
+        Rating = 0;
+        CurrentGameId = null;
+        MoveSequence = 0;
+    }
+
     private static string HashPassword(string password)
     {
         using var sha256 = SHA256.Create();
