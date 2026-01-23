@@ -246,9 +246,13 @@ dotnet build PrometheusVulkan/PrometheusVulkan.csproj
 
 ```bash
 # Development mode (in-memory, no database required)
+# Copy a new appsettings.json first
+cp appsettings.example.json appsettings.json
+# Then run the server
 dotnet run --project PrometheusServer -- --dev
 
 # Production mode (requires PostgreSQL)
+# Same as copy above, however you need to adjust appsettings.json to suit the needs.
 dotnet run --project PrometheusServer
 ```
 
